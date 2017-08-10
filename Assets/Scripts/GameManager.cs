@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour {
     /// <summary>
     /// True if game paused
     /// </summary>
-    public static bool m_isPaused = false;
+    public static bool m_isPaused = true;
     /// <summary>
     /// Score to win
     /// </summary>
@@ -88,21 +88,24 @@ public class GameManager : MonoBehaviour {
 
     void Update()
     {
-        // If someone win
-        if (m_playerScore1 == m_scoreMax || m_playerScore2 == m_scoreMax)
+        if (!m_isPaused)
         {
-            m_playerScore1 = 0;
-            m_playerScore2 = 0;
-            INSTANCE.m_theBall.SendMessage("ResetBall", null, SendMessageOptions.RequireReceiver);
-            MenuManager.OpenMenu(MENUTYPE.END);
-        }
+            // If someone win
+            if (m_playerScore1 == m_scoreMax || m_playerScore2 == m_scoreMax)
+            {
+                m_playerScore1 = 0;
+                m_playerScore2 = 0;
+                INSTANCE.m_theBall.SendMessage("ResetBall", null, SendMessageOptions.RequireReceiver);
+                MenuManager.OpenMenu(MENUTYPE.END);
+            }
 
-        //Spawn a box
-        m_timeSpawnBox += Time.deltaTime;
-        if(m_withObject && m_timeSpawnBox > m_IntervalSpawnBox)
-        {
-            m_timeSpawnBox = 0;
-            GameObject.Instantiate(m_boxPrefab, new Vector3(Random.Range(-1.4f,1.4f), 0, 0), Quaternion.identity,transform);
+            //Spawn a box
+            m_timeSpawnBox += Time.deltaTime;
+            if (m_withObject && m_timeSpawnBox > m_IntervalSpawnBox)
+            {
+                m_timeSpawnBox = 0;
+                GameObject.Instantiate(m_boxPrefab, new Vector3(Random.Range(-1.4f, 1.4f), 0, 0), Quaternion.identity, transform);
+            }
         }
     }
 
@@ -123,13 +126,13 @@ public class GameManager : MonoBehaviour {
     /// <param name="a_vsIA">True if against AI</param>
     public static void StartGame(bool a_vsIA)
     {
+        INSTANCE.m_timeSpawnBox = 0;
         m_isVsIA = a_vsIA;
         m_lastWinner = PLAYER.NOBODY;
         m_lastHit = PLAYER.NOBODY;
         m_playerScore1 = 0;
         m_playerScore2 = 0;
         m_isPaused = false;
-        INSTANCE.m_timeSpawnBox = 0;
         foreach (PlayerControl player in INSTANCE.m_players)
         {
             player.RestartGame();
@@ -150,6 +153,7 @@ public class GameManager : MonoBehaviour {
     public static void RestartRoundStatic()
     {
 
+        INSTANCE.m_timeSpawnBox = -1;
         for (int i = INSTANCE.transform.childCount - 1; i >= 0; i--)
         {
             Destroy(INSTANCE.transform.GetChild(i).gameObject);
@@ -172,13 +176,13 @@ public class GameManager : MonoBehaviour {
     /// <summary>
     /// Update score
     /// </summary>
-    /// <param name="wallID">Wich wall have been hit</param>
-    public static void Score(string wallID)
+    /// <param name="a_player">Wich player mark point</param>
+    public static void Score(PLAYER a_player)
     {
-        if (wallID == "TopWall")
+        if (a_player == PLAYER.PLAYER_1)
         {
             m_playerScore1++;
-            m_lastWinner = PLAYER.PLAYER_1;
+            m_lastWinner = a_player;
         }
         else
         {
